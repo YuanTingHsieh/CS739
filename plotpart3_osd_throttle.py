@@ -35,7 +35,7 @@ logs_t100, second_count = parse_logs(t100file)
 
 plt.plot(np.arange(second_count), logs_t10, '-b', label='-t 10')
 plt.plot(np.arange(second_count), logs_t100, '-g', label='-t 100')
-plt.title('OSD Throttle Client Bytes vs Seconds')
+plt.title('OSD Throttle Client Bytes vs Time')
 plt.legend(loc='upper left')
 plt.xlabel('Time (s)')
 plt.ylabel('OSD Throttle Client (MB)')
