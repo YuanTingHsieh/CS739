@@ -32,7 +32,11 @@ for l in f.read().splitlines():
         parseField = False
 f.close()
 
-plt.plot(np.arange(second_count), hdd_logs[0]["Use"], 'bo', label='hdd0')
-plt.plot(np.arange(second_count), hdd_logs[0]["Use"], 'go', label='hdd1')
-plt.plot(np.arange(second_count), hdd_logs[0]["Use"], 'ro', label='hdd2')
-plt.savefig("disk0.png")
+plt.plot(np.arange(second_count), hdd_logs[0]["Use"], '-b', label='hdd0')
+plt.plot(np.arange(second_count), hdd_logs[1]["Use"], '-g', label='hdd1')
+plt.plot(np.arange(second_count), hdd_logs[2]["Use"], '-r', label='hdd2')
+plt.legend(loc='upper left')
+plt.xlabel('Time (s)')
+plt.ylabel('Disk Usage (GiB)')
+plt.savefig("disk.png")
+plt.show()
