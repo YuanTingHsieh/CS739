@@ -3,7 +3,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-filename = "part3.log"
+filename = "part3_b4M.log"
 hdds = 3
 hdd_logs = []
 for h in range(hdds):
@@ -38,5 +38,5 @@ plt.plot(np.arange(second_count), hdd_logs[2]["Use"], '-r', label='hdd2')
 plt.legend(loc='upper left')
 plt.xlabel('Time (s)')
 plt.ylabel('Disk Usage (GiB)')
-plt.savefig("disk.png")
+plt.savefig("disk_b4M.png")
 plt.show()
