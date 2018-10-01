@@ -1,0 +1,220 @@
+Probing round 1
+Mon Oct  1 16:50:18 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 0,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2810,
+        "get_sum": 3008041821,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2810,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3577,
+        "put_sum": 3008041821,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 2
+Mon Oct  1 16:50:19 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 744,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2837,
+        "get_sum": 3008048494,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2837,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3601,
+        "put_sum": 3008047750,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 3
+Mon Oct  1 16:50:20 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 1245,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2874,
+        "get_sum": 3008057696,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2874,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3636,
+        "put_sum": 3008056451,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 4
+Mon Oct  1 16:50:21 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 2490,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2912,
+        "get_sum": 3008067158,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2912,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3669,
+        "put_sum": 3008064668,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 5
+Mon Oct  1 16:50:23 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 1494,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2941,
+        "get_sum": 3008074379,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2941,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3702,
+        "put_sum": 3008072885,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 6
+Mon Oct  1 16:50:24 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 1245,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 2982,
+        "get_sum": 3008084588,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 2982,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3744,
+        "put_sum": 3008083343,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 7
+Mon Oct  1 16:50:25 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 2490,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 3031,
+        "get_sum": 3008096789,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 3031,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3788,
+        "put_sum": 3008094299,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 8
+Mon Oct  1 16:50:26 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 0,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 3045,
+        "get_sum": 3008100275,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 3045,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3812,
+        "put_sum": 3008100275,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 9
+Mon Oct  1 16:50:28 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 0,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 3045,
+        "get_sum": 3008100275,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 3045,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3812,
+        "put_sum": 3008100275,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
+Probing round 10
+Mon Oct  1 16:50:29 UTC 2018
+{
+    "throttle-osd_client_bytes": {
+        "val": 0,
+        "max": 524288000,
+        "get_started": 0,
+        "get": 3045,
+        "get_sum": 3008100275,
+        "get_or_fail_fail": 0,
+        "get_or_fail_success": 3045,
+        "take": 0,
+        "take_sum": 0,
+        "put": 3812,
+        "put_sum": 3008100275,
+        "wait": {
+            "avgcount": 0,
+            "sum": 0.000000000,
+            "avgtime": 0.000000000
+        }
+    }
+}
