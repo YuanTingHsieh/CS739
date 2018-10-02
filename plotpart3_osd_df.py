@@ -33,9 +33,9 @@ for l in f.read().splitlines():
         parseField = False
 f.close()
 
-plt.plot(np.arange(second_count), hdd_logs[0]["Use"], '-b', label='ssd0')
-plt.plot(np.arange(second_count), hdd_logs[1]["Use"], '-g', label='hdd1')
-plt.plot(np.arange(second_count), hdd_logs[2]["Use"], '-r', label='hdd2')
+plt.plot(np.arange(second_count), hdd_logs[0]["Use"], '-b', label='hdd0')
+plt.plot(np.arange(second_count), hdd_logs[1]["Use"], '-g', label='ssd1')
+plt.plot(np.arange(second_count), hdd_logs[2]["Use"], '-r', label='ssd2')
 plt.title('OSD Disk Usage vs Time')
 plt.legend(loc='upper left')
 plt.xlabel('Time (s)')
