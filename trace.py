@@ -29,7 +29,7 @@ import subprocess
 import argparse
 import shlex
 ERRFS_HOME = os.path.dirname(os.path.realpath(__file__))
-fuse_command_trace = "sudo " + ERRFS_HOME + "/errfs -f -oallow_other,modules=subdir,subdir=%s %s trace %s &"
+fuse_command_trace = "sudo -u ceph " + ERRFS_HOME + "/errfs -f -oallow_other,modules=subdir,subdir=%s %s trace %s &"
 print fuse_command_trace
 
 parser = argparse.ArgumentParser()
@@ -68,14 +68,18 @@ for i in range(0, machine_count):
 	data_dir_snapshots.append(os.path.join(uppath(data_dirs[i], 1), os.path.basename(os.path.normpath(data_dirs[i]))+ ".snapshot"))
 	data_dir_mount_points.append(os.path.join(uppath(data_dirs[i], 1), os.path.basename(os.path.normpath(data_dirs[i]))+ ".mp"))
 	subprocess.check_output("rm -rf " + data_dir_snapshots[i], shell = True)
-	subprocess.check_output("rm -rf " + data_dir_mount_points[i], shell = True)
-	subprocess.check_output("mkdir " + data_dir_mount_points[i], shell = True)
+	try:
+		subprocess.check_output("rmdir " + data_dir_mount_points[i], shell = True)
+	except Exception,e:
+		print e
+		raw_input("#")
+	subprocess.check_output("install -d -o ceph -g ceph -m 755  " + data_dir_mount_points[i], shell = True)
 
 # copy things to snapshots using rsync
 for i in range(0, machine_count):
-	subprocess.check_output("sudo rsync -rv -LK --exclude=journal " + data_dirs[i] + "/ " + data_dir_snapshots[i], shell = True)
+	subprocess.check_output("sudo rsync -arv -LXK --exclude=journal " + data_dirs[i] + "/ " + data_dir_snapshots[i], shell = True)
 	subprocess.check_output("sudo dd if=/dev/sdc1 of=/dev/sdd1 bs=128k", shell = True)
-        subprocess.check_output("sudo chown -R ceph:ceph /var/lib/ceph/osd/*", shell = True)
+        #subprocess.check_output("sudo chown -R ceph:ceph /var/lib/ceph/osd/*", shell = True)
         #subprocess.check_output("sudo chown  root:root /var/lib/ceph/osd/ceph-0/journal", shell = True)
 	#subprocess.check_output("sudo ln -sf /dev/sdd1 /var/lib/ceph/osd/ceph-0/journal", shell = True)
 

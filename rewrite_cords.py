@@ -49,8 +49,8 @@ parser.add_argument('--checker_command', type = str, help = 'Checker for workloa
 
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 
-def raw_input(inputs):
-	pass
+#def raw_input(inputs):
+#	pass
 
 def kill_proc(proc, timeout):
 	timeout["value"] = True
@@ -122,18 +122,22 @@ machine = 0
 
 
 def kill_ceph():
+	print "beforer killing ceph"
 	try:
 		cmd = "sudo killall ceph-osd"
 		out_err = subprocess.check_output(cmd,shell=True, stderr= subprocess.STDOUT)
 		print "killing ceph",out_err
 	except Exception,e:
 		print e
+	print "after killing ceph"
 
 def start_ceph():
 	kill_ceph()
 	cmd = "sudo -u ceph /usr/bin/ceph-osd -i 0 -f"
+	print "before starting ceph"
 	foreground_ceph = subprocess.Popen(shlex.split(cmd),preexec_fn=os.setpgrp)
-
+	print "after starting ceph"
+	return foreground_ceph
 
 
 """
@@ -194,8 +198,89 @@ def cords_count():
 
 	return total
 
-results = list()				
-def cords_check():
+
+def umount(mp):
+	try:
+		subprocess.check_output("sudo umount %s " % mp , shell= True , stderr = subprocess.STDOUT)
+	except Exception, e:
+		print e
+
+def truncate_dir(dir_path):
+	try:
+		subprocess.check_output("sudo rm -rf %s/*" , shell=True, stderr = subprocess.STDOUT)
+	except Exception, e:
+		print e
+def copy_except_journal(src,dst): 
+	try:
+		subprocess.check_output("sudo rsync -LKX -ar --exclude=journal %s/ %s"% (src,dst), shell = True)
+	except Exception, e:
+		print e
+
+def overwrite_journal():
+	subprocess.check_output("sudo dd if=/dev/sdd1 of=/dev/sdc1 bs=128k", shell = True)
+
+def restore_from_backup():
+	for mach in machines:
+		errfs_mp    = data_dir_mount_points[mach]
+		original_mp = data_dirs[mach]
+		backup_mp   = data_dir_snapshots[mach]
+		umount(errfs_mp)
+		truncate_dir(original_mp)
+		copy_except_journal(backup_mp,original_mp)	
+	overwrite_journal()
+	pass
+
+def setup_before_state( corrupt_machine,log_dir_path):
+	restore_from_backup()
+	subprocess.check_output("sudo rm -rf " + data_dir_mount_points[corrupt_machine], shell = True)	
+	subprocess.check_output("sudo install -d -o ceph -g ceph -m 755 " + data_dir_mount_points[corrupt_machine], shell = True)	
+	subprocess.check_output("sudo ln -snf /dev/sdc1 /var/lib/ceph/osd/ceph-0/journal ", shell = True)
+	os.system("sudo rm -f newtest.txt")
+	os.system("rm -rf " + log_dir_path)
+	os.system("install -d -o ceph -g ceph -m 755 " + log_dir_path)
+	os.system("rm -rf /tmp/shoulderr")
+	os.system("touch /tmp/shoulderr; chown ceph:ceph /tmp/shoulderr; chmod 777 /tmp/shoulderr; echo \'fals\' >> /tmp/shoulderr")
+
+
+
+def start_errfs(corrupt_machine,corrupt_filename,block,err_type):
+	fuse_start_command = fuse_command_err%(data_dirs[corrupt_machine], data_dir_mount_points[corrupt_machine], corrupt_filename, block, err_type)
+	os.system(fuse_start_command)
+
+def stop_errfs(corrupt_machine):
+	fuse_stop_command = fuse_unmount_command%(data_dir_mount_points[corrupt_machine])
+	os.system(fuse_stop_command)
+	os.system('sleep 1')
+	os.system('sudo killall errfs')
+
+
+
+def execute_workload(corrupt_machine,log_dir_path):	
+	data_dir_curr = map(lambda mach : data_dir_mount_points[mach] if corrupt_machine == mach else data_dirs[mach], machines)
+	workload_command_curr = workload_command + " cords "
+	workload_command_curr += " ".join(data_dir_curr)
+	workload_command_curr += " " + log_dir_path
+	print "invoke cmnd",workload_command_curr
+	(out, err) = invoke_cmd(workload_command_curr)
+
+def check_ok():
+	import filecmp
+	for i in range(5):
+		try:
+			if not filecmp.cmp("/home/ceph-admin/CORDS/newtest%d.txt"%i,"/home/ceph-admin/CORDS/test.txt"):
+				exit(-1)
+				return (False,"file corrupted")
+	
+		except Exception,e:
+			return (False,"file missing")
+	return (True,"")
+def backup_resutls(log_dir_path):
+	os.system('mv /tmp/shoulderr ' + log_dir_path)
+	for mach in machines:
+		os.system('sudo rsync -LK -ar --exclude=journal ' + data_dirs[mach] + '/ ' + log_dir_path)
+
+
+def cords_check(results):
 	total = cords_count()
 	count = 0
 	for key in err_map:
@@ -209,134 +294,39 @@ def cords_check():
 			possible_err_modes = get_error_modes(op)
 			for err_type in possible_err_modes:
 				dir_index = str(corrupt_filename).rfind(data_dirs[corrupt_machine]) + len(data_dirs[corrupt_machine]) + 1			
-				log_dir =  'result_' + (str(corrupt_machine) + '_' + str(corrupt_filename[dir_index :]) + '_' + str(block) + '_' + str(op) + '_' + str(err_type)).replace('/', '_')
+				#log_dir =  'result_' + (str(corrupt_machine) + '_' + str(corrupt_filename[dir_index :]) + '_' + str(block) + '_' + str(op) + '_' + str(err_type)).replace('/', '_')
+				log_dir =  'result_%d_%s_%d_%s_%s'%(corrupt_machine,corrupt_filename[dir_index :],block,op,(err_type).replace('/', '_'))
 				log_dir_path =  os.path.join(cords_results_base_dir, log_dir)
-				
-				print str(op) + ' ' + str(corrupt_machine) + ':' + str(corrupt_filename) + ':' + str(block) + ':' + str(err_type)
-				for mach in machines:
-                                    try:
-					subprocess.check_output("sudo umount " + data_dirs[mach] +".mp", shell = True,stderr=subprocess.STDOUT)
-                                    except Exception,e:
-					print "Can't unmount current ERRFS mountpoint"
-					raw_input("press any key to continue ...")
-                                        pass
-                                    print "Removing Data"
-                                    subprocess.check_output("sudo rm -rf " + data_dirs[mach]+"/*", shell = True)
-                                    # copy back snapshots of data
-                                    print "Overwrite with Snapshot"
-                                    subprocess.check_output("sudo rsync -LKX -ar --exclude=journal " + data_dir_snapshots[mach] + '/ ' + data_dirs[mach], shell = True)
-                                    # copy back journal TODO
-                                    print "Replicating sdc1 to sdd1"
-                                    subprocess.check_output("sudo dd if=/dev/sdd1 of=/dev/sdc1 bs=128k", shell = True)
-                                    #subprocess.check_output("sudo chown -R ceph:ceph /var/lib/ceph/osd/* ", shell = True)
-
-                                kill_ceph()
-				subprocess.check_output("sudo rm -rf " + data_dir_mount_points[corrupt_machine], shell = True)	
-				subprocess.check_output("sudo install -d -o ceph -g ceph -m 755 " + data_dir_mount_points[corrupt_machine], shell = True)	
-
-                                #subprocess.check_output("sudo chown -R ceph:ceph /var/lib/ceph/osd/* ", shell = True)
-
-                                print "Create journal symbolic link with sdd1" 
-                                subprocess.check_output("sudo ln -snf /dev/sdc1 /var/lib/ceph/osd/ceph-0/journal ", shell = True)
-				#raw_input("Before Mounting please check permission")
-                                # mount errfs
-				
-
-
-
-				fuse_start_command = fuse_command_err%(data_dirs[corrupt_machine], data_dir_mount_points[corrupt_machine], corrupt_filename, block, err_type)
-				#fuse_start_command = fuse_command_err%(data_dirs[corrupt_machine], data_dir_mount_points[corrupt_machine], "/home/ceph-admin/fuck")
-                                
-
-
-
-				#print "Stating ErrFS", fuse_start_command
-                                #real_command = shlex.split(fuse_start_command)
-                                #p = subprocess.Popen(real_command)
-				os.system(fuse_start_command)
-                                #res = subprocess.check_output(fuse_start_command,shell=True)
-                                
-                                #print res
-                                # stop and re-start ceph-osd
-                                # remember modify the ceph-conf first (in /etc/ceph/ceph.conf, can call addconfig.py to do it)
-				#raw_input("Before Starting OSD")
-				os.system("sudo rm -f newtest.txt")
-                                #if count % 20 == 0:
-                                #    out = subprocess.check_output("sudo systemctl daemon-reload", stderr = subprocess.STDOUT, shell=True)
-                                #print "starting osd"
-                                raw_input("Before Started OSD")
+                
+				kill_ceph()
+				stop_errfs(corrupt_machine)
+				setup_before_state(corrupt_machine,log_dir_path)
+			
+				start_errfs(corrupt_machine,corrupt_filename,block,err_type)
 				start_ceph()
+				execute_workload(corrupt_machine,log_dir_path)	
 				
-                                raw_input("After Started OSD")
-					
-				data_dir_curr = []
-				for mach in machines:
-					data_dir_curr.append(data_dir_mount_points[mach] if corrupt_machine == mach else data_dirs[mach])
-				assert len(data_dir_curr) == len(machines)				
-
-				workload_command_curr = workload_command + " cords "
-				for ddc in data_dir_curr:
-					workload_command_curr +=  ddc + " "
-
-				workload_command_curr += log_dir_path + " "
-
-				os.system("rm -rf " + log_dir_path)
-				os.system("install -d -o ceph -g ceph -m 755 " + log_dir_path)
-				
-				os.system("rm -rf /tmp/shoulderr")
-				os.system("touch /tmp/shoulderr; chown ceph:ceph /tmp/shoulderr; chmod 777 /tmp/shoulderr; echo \'fals\' >> /tmp/shoulderr")
-                                print "invoke cmnd",workload_command_curr
-				(out, err) = invoke_cmd(workload_command_curr)
-				#subprocess.check_output(workload_command_curr,shell=True,stderr=subprocess.STDOUT,timeout=10)
-                               	import filecmp
-				
-				for i in range(5):
-					try:
-						if not filecmp.cmp("/home/ceph-admin/CORDS/newtest%d.txt"%i,"/home/ceph-admin/CORDS/test.txt"):
-							results.append((log_dir,"content differ"))
-							break
-					except Exception,e:
-						results.append((log_dir,"no such file"))
-						break
-					
-	
-				print "done"
-				outfile = os.path.join(log_dir_path, 'workload.out')
-				os.system("rm -rf " + outfile)
-				os.system("touch " + outfile)
-				with open(outfile, 'a') as f:
-					f.write(out + '\n' + err + '\n')
-
 				kill_ceph()	
-				fuse_unmount = fuse_unmount_command%(data_dir_mount_points[corrupt_machine]) 
+				stop_errfs(corrupt_machine)
 				
-				os.system('sleep 1')
-				os.system(fuse_unmount)
+				ok,msg = check_ok()
+				raw_input(msg)
 				
-				os.system('sleep 1')
-				os.system('sudo killall errfs')
-
-				os.system('mv /tmp/shoulderr ' + log_dir_path)
-
-				for mach in machines:
-                                        # do we need other thing here TODO
-					os.system('sudo rsync -LK -ar --exclude=journal ' + data_dirs[mach] + '/ ' + log_dir_path)
+				if(ok):
+					results.append( (log_dir,"success"))
+				else:
+					results.append( (log_dir,msg))
 				
-				if replay_check_needed:
-					checker_command_curr = checker_command + ' ' + log_dir_path
-					print 'Invoking checker...'
-					os.system(checker_command_curr)
-
+				backup_resutls(log_dir_path)								
 				count += 1
 				print 'States completed:' + str(count) + '/' + str(total)
-				#if count == 1:
-				#	return
 
-start_test = time.time()
-kill_ceph()
-cords_check()
-print 'cords-check done!'
-end_test = time.time()
-print 'Testing took ' + str((end_test - start_test)) + ' seconds...'
-print results
+if __name__ == "__main__":
+	results = list()				
+	start_test = time.time()
+	cords_check(results)
+	print 'cords-check done!'
+	end_test = time.time()
+	print 'Testing took ' + str((end_test - start_test)) + ' seconds...'
+	print results
 

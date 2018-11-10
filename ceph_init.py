@@ -19,14 +19,15 @@ try:
     print "Making testpool"
     setup_cmd = "sudo ceph osd pool create testpool 100"
     (out, err) = invoke_cmd(setup_cmd)
-    setup_cmd = "sudo ceph osd pool set testpool min_size 1"
+    setup_cmd = "sudo ceph osd pool set testpool min_size 3"
     (out, err) = invoke_cmd(setup_cmd)
     setup_cmd = "sudo rbd pool init testpool"
     (out, err) = invoke_cmd(setup_cmd)
 
     print "Putting object"
-    put_cmd = "sudo rados put -p testpool testObj " + filename
-    (out, err) = invoke_cmd(put_cmd)
+	workload_cmd = 'sudo rados put -p testpool testObj%d '+filename
+    for i in range(5):
+        (out, err) = invoke_cmd(put_cmd % (i))
 except Exception as e:
     print 'Error:' + str(e)
 
